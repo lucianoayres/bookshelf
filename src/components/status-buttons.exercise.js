@@ -56,6 +56,21 @@ function StatusButtons({user, book}) {
 
   const listItem = listItems?.find(li => li.bookId === book.id) ?? null
 
+  const [update] = useMutation(
+    updates =>
+      client(`list-items/${updates.id}`, {
+        method: 'PUT',
+        data: updates,
+        token: user.token,
+      }),
+    {onSettled: () => queryCache.invalidateQueries('list-items')},
+  )
+
+  const [remove] = useMutation(
+    ({id}) => client(`list-tems/${id}`, {method: 'DELETE', token: user.token}),
+    {onSettled: () => queryCache.invalidateQueries('list-items')},
+  )
+
   const [create] = useMutation(
     ({bookId}) => client('list-items', {data: {bookId}, token: user.token}),
     {onSettled: () => queryCache.invalidateQueries('list-items')},
@@ -68,16 +83,14 @@ function StatusButtons({user, book}) {
           <TooltipButton
             label="Unmark as read"
             highlight={colors.yellow}
-            onClick={() => create({bookId: book.id})}
+            onClick={() => update({id: listItem.id, finishDate: null})}
             icon={<FaBook />}
           />
         ) : (
           <TooltipButton
             label="Mark as read"
             highlight={colors.green}
-            // 🐨 add an onClick here that calls update with the data we want to update
-            // 💰 to mark a list item as read, set the finishDate
-            // {id: listItem.id, finishDate: Date.now()}
+            onClick={() => update({id: listItem.id, finishDate: Date.now()})}
             icon={<FaCheckCircle />}
           />
         )
@@ -86,14 +99,14 @@ function StatusButtons({user, book}) {
         <TooltipButton
           label="Remove from list"
           highlight={colors.danger}
-          // 🐨 add an onClick here that calls remove
+          onClick={() => remove({id: listItem.id})}
           icon={<FaMinusCircle />}
         />
       ) : (
         <TooltipButton
           label="Add to list"
           highlight={colors.indigo}
-          // 🐨 add an onClick here that calls create
+          onClick={() => create({bookId: book.id})}
           icon={<FaPlusCircle />}
         />
       )}
