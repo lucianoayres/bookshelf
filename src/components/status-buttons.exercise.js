@@ -10,8 +10,6 @@ import {
   FaTimesCircle,
 } from 'react-icons/fa'
 import Tooltip from '@reach/tooltip'
-import {useQuery, useMutation, queryCache} from 'react-query'
-import {client} from 'utils/api-client'
 import {
   useListItem,
   useUpdateListItem,
@@ -23,10 +21,14 @@ import * as colors from 'styles/colors'
 import {CircleButton, Spinner} from './lib'
 
 function TooltipButton({label, highlight, onClick, icon, ...rest}) {
-  const {isLoading, isError, error, run} = useAsync()
+  const {isLoading, isError, error, run, reset} = useAsync()
 
   function handleClick() {
-    run(onClick())
+    if (isError) {
+      reset()
+    } else {
+      run(onClick())
+    }
   }
 
   return (
@@ -56,9 +58,9 @@ function TooltipButton({label, highlight, onClick, icon, ...rest}) {
 function StatusButtons({user, book}) {
   const listItem = useListItem(user, book.id)
 
-  const [update] = useUpdateListItem(user)
-  const [remove] = useRemoveListItem(user)
-  const [create] = useCreateListItem(user)
+  const [update] = useUpdateListItem(user, {throwError: true})
+  const [remove] = useRemoveListItem(user, {throwError: true})
+  const [create] = useCreateListItem(user, {throwError: true})
 
   return (
     <React.Fragment>
